@@ -1,7 +1,8 @@
-import sys
+import sys, os
 operation = None
+input_path, output_path = None, r"C:\Videos"
 
-def chooseOperation():
+def choose_operation():
     global operation
     if len(sys.argv) > 1 and (sys.argv[1] == "merge" or sys.argv[1] == "ytdlp" or sys.argv[1] == "ytarchive"):
         operation = sys.argv[1]
@@ -9,13 +10,13 @@ def chooseOperation():
         while True:
             print("Enter \"1\" for merge video\nEnter \"2\" for yt-dlp(inoperative)\nEnter \"3\" for ytarchive(inoperative)")
             try:
-                operation = int(input("Enter number: "))
-                if operation >= 1 or operation <= 3:
-                    if operation == 1:
+                temp = int(input("Enter number: "))
+                if temp >= 1 or temp <= 3:
+                    if temp == 1:
                         operation = "merge"
-                    elif operation == 2:
+                    elif temp == 2:
                         operation = "ytdlp"
-                    elif operation == 3:
+                    elif temp == 3:
                         operation = "ytarchive"
                     else:
                         raise ValueError
@@ -26,10 +27,42 @@ def chooseOperation():
                 print("\nIncorrect number, enter again")
                 input("Press Enter to continue...\n")
     print(f"Selected operation: {operation}")
+
+def change_input_path():
+    global input_path, output_path
+
+    while True:
+        input_path = input("Enter folder path: ").strip()
+        if os.path.isdir(input_path):
+            break
+        else:
+            input_path = None
+            print("\nIncorrect path, enter again")
+            input("Press Enter to continue...\n")
+
+
+
+    print(f"Input location: {input_path}")
+    print(f"Default output location: {output_path}")
+
+def merge_setup():
+    change_input_path()
+    
+                    
+def ytdlp_setup():
+    pass
+                
+def ytarchive_setup():
+    pass
                 
 if __name__ == "__main__":
-    # print(f"sys.argv: {sys.argv}")
-    # print(f"len(sys.argv): {len(sys.argv)}\n")
-    chooseOperation()
-    
-
+    # choose_operation()
+    # if operation == "merge":
+    #     merge_setup()
+    # elif operation == "ytdlp":
+    #     ytdlp_setup()
+    # elif operation == "ytarchive":
+    #     ytarchive_setup()
+    # else:
+    #     sys.exit("\nUnknown operation, program ended")
+    merge_setup()
