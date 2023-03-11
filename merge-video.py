@@ -50,6 +50,8 @@ def change_input_path():
     while True:
         input_path = input("\nEnter input folder path: ").strip()
         if os.path.isdir(input_path):
+            while input_path[-1:] == ".":
+                input_path = input_path[:-1]
             break
         else:
             input_path = None
