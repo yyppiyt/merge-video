@@ -12,8 +12,8 @@ operation: {operation}
 input_path: \"{input_path}\", input_video_extension: {input_video_extension}, input_image_extension: {input_image_extension}
 output_path: \"{output_path}\", output_video_extension: {output_video_extension}
 merge_list:""")
-    for x in merge_list:
-        print(x)
+    for i in merge_list:
+        print(i)
 
 def press_enter_to_continue(error_message):
     print(f"\n{error_message}")
@@ -46,7 +46,7 @@ def choose_operation():
                 press_enter_to_continue("Incorrect number, enter again")
 
 def change_input_path():
-    global input_path, output_path
+    global input_path
     while True:
         input_path = input("\nEnter input folder path: ").strip()
         if os.path.isdir(input_path):
@@ -111,16 +111,16 @@ def update_merge_list():
     global input_video_extension, input_image_extension, merge_list
     temp_video_list, temp_image_list = [], []
     temp_list = os.listdir(input_path)
-    for x in temp_list:
-        if input_video_extension in x[-len(input_video_extension):]:
-            temp_video_list.append(x[:-len(input_video_extension)])
-        if input_image_extension in x[-len(input_image_extension):]:
-            temp_image_list.append(x[:-len(input_image_extension)])
+    for i in temp_list:
+        if i.endswith(input_video_extension):
+            temp_video_list.append(i[:-len(input_video_extension)])
+        if i.endswith(input_image_extension):
+            temp_image_list.append(i[:-len(input_image_extension)])
     # 
-    for x in temp_video_list:
-        for y in temp_image_list:
-            if x == y:
-                merge_list.append(x)
+    for i in temp_video_list:
+        for j in temp_image_list:
+            if i == j:
+                merge_list.append(i)
                 break
 
 def merge_setup():
