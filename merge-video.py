@@ -19,24 +19,25 @@ def press_enter_to_continue(error_message):
     print(f"\n{error_message}")
     input("Press Enter to continue...\n")
 
-# determine what should the program do
+# Determine what should the program do
 def choose_operation():
     global operation
-    # if user entered a valid operation, use it
+    # If user entered a valid operation, use it
     if len(sys.argv) > 1 and (sys.argv[1] == "merge" or sys.argv[1] == "ytdlp" or sys.argv[1] == "ytarchive"):
         operation = sys.argv[1]
     else:
         while True:
-            print("Enter \"1\" for merge video\nEnter \"2\" for yt-dlp(inoperative)\nEnter \"3\" for ytarchive(inoperative)")
+            # print("Enter \"1\" for merge video\nEnter \"2\" for yt-dlp(inoperative)\nEnter \"3\" for ytarchive(inoperative)")
+            print("Enter \"1\" for merge video")
             try:
                 temp = int(input("Enter number: "))
                 if temp >= 1 and temp <= 3:
                     if temp == 1:
                         operation = "merge"
-                    elif temp == 2:
-                        operation = "ytdlp"
-                    elif temp == 3:
-                        operation = "ytarchive"
+                    # elif temp == 2:
+                    #     operation = "ytdlp"
+                    # elif temp == 3:
+                    #     operation = "ytarchive"
                     else:
                         raise ValueError
                 else:
@@ -55,6 +56,18 @@ def change_input_path():
             break
         else:
             input_path = None
+            press_enter_to_continue("Incorrect path, enter again")
+
+def change_output_path():
+    global output_path
+    while True:
+        output_path = input("\nEnter output folder path: ").strip()
+        if os.path.isdir(output_path):
+            while output_path[-1:] == ".":
+                output_path = output_path[:-1]
+            break
+        else:
+            output_path = None
             press_enter_to_continue("Incorrect path, enter again")
 
 def change_video_extension():
@@ -125,6 +138,7 @@ def update_merge_list():
 
 def merge_setup():
     change_input_path()
+    change_output_path()
     change_video_extension()
     change_image_extension()
     update_merge_list()
@@ -140,10 +154,10 @@ if __name__ == "__main__":
     print(f"Selected operation: {operation}")
     if operation == "merge":
         merge_setup()
-    elif operation == "ytdlp":
-        ytdlp_setup()
-    elif operation == "ytarchive":
-        ytarchive_setup()
+    # elif operation == "ytdlp":
+    #     ytdlp_setup()
+    # elif operation == "ytarchive":
+    #     ytarchive_setup()
     else:
         sys.exit("\nUnknown operation, program ended")
     # print(os.listdir(input_path))
