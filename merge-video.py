@@ -103,10 +103,10 @@ def change_path(operation=None):
 #             press_enter_to_continue("Incorrect path, enter again")
 
 
-def change_video_extension():
-    global input_video_extension
-    while True:
-        try:
+def change_extension(operation):
+    global input_video_extension, input_image_extension
+    match operation:
+        case "video":
             print(
                 '\nEnter "1" for .mp4\nEnter "2" for .mkv\nEnter "3" for .webm\nEnter "4" for manual input'
             )
