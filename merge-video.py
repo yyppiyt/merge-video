@@ -61,7 +61,7 @@ def change_path(operation=None):
         case "output":
             printString = "\nEnter output folder path: "
         case _:
-            sys.exit("\nUnknown operation, program ended")
+            sys.exit("\nUnknown operation while changing path, program ended")
     while True:
         temp_path = input(printString).strip()
         if os.path.isdir(temp_path):
@@ -77,30 +77,30 @@ def change_path(operation=None):
         output_path = temp_path
 
 
-def change_input_path():
-    global input_path
-    while True:
-        input_path = input("\nEnter input folder path: ").strip()
-        if os.path.isdir(input_path):
-            while input_path[-1:] == ".":
-                input_path = input_path[:-1]
-            break
-        else:
-            input_path = None
-            press_enter_to_continue("Incorrect path, enter again")
+# def change_input_path():
+#     global input_path
+#     while True:
+#         input_path = input("\nEnter input folder path: ").strip()
+#         if os.path.isdir(input_path):
+#             while input_path[-1:] == ".":
+#                 input_path = input_path[:-1]
+#             break
+#         else:
+#             input_path = None
+#             press_enter_to_continue("Incorrect path, enter again")
 
 
-def change_output_path():
-    global output_path
-    while True:
-        output_path = input("\nEnter output folder path: ").strip()
-        if os.path.isdir(output_path):
-            while output_path[-1:] == ".":
-                output_path = output_path[:-1]
-            break
-        else:
-            output_path = None
-            press_enter_to_continue("Incorrect path, enter again")
+# def change_output_path():
+#     global output_path
+#     while True:
+#         output_path = input("\nEnter output folder path: ").strip()
+#         if os.path.isdir(output_path):
+#             while output_path[-1:] == ".":
+#                 output_path = output_path[:-1]
+#             break
+#         else:
+#             output_path = None
+#             press_enter_to_continue("Incorrect path, enter again")
 
 
 def change_video_extension():
@@ -110,53 +110,105 @@ def change_video_extension():
             print(
                 '\nEnter "1" for .mp4\nEnter "2" for .mkv\nEnter "3" for .webm\nEnter "4" for manual input'
             )
-            temp = int(input("Enter number: "))
-            if temp >= 1 and temp <= 4:
-                if temp == 1:
-                    input_video_extension = ".mp4"
-                elif temp == 2:
-                    input_video_extension = ".mkv"
-                elif temp == 3:
-                    input_video_extension = ".webm"
-                elif temp == 4:
-                    break
-                else:
-                    raise ValueError
-            else:
-                raise ValueError
-            return
-        except ValueError:
-            press_enter_to_continue("Incorrect number, enter again")
-    input_video_extension = input("Manual input video extension: ")
-    if input_video_extension[0] != ".":
-        input_video_extension = "." + input_video_extension
-
-
-def change_image_extension():
-    global input_image_extension
-    while True:
-        try:
+        case "image":
             print(
                 '\nEnter "1" for .png\nEnter "2" for .jpg\nEnter "3" for manual input'
             )
-            temp = int(input("Enter number: "))
-            if temp >= 1 and temp <= 3:
-                if temp == 1:
-                    input_image_extension = ".png"
-                elif temp == 2:
-                    input_image_extension = ".jpg"
-                elif temp == 3:
-                    break
-                else:
-                    raise ValueError
-            else:
-                raise ValueError
+        case _:
+            sys.exit("\nUnknown operation while changing extension, program ended")
+    while True:
+        try:
+            index = int(input("Enter number: "))
+            match operation:
+                case "video":
+                    match index:
+                        case 1:
+                            input_video_extension = ".mp4"
+                        case 2:
+                            input_video_extension = ".mkv"
+                        case 3:
+                            input_video_extension = ".webm"
+                        case 4:
+                            break
+                        case _:
+                            raise ValueError
+                case "image":
+                    match index:
+                        case 1:
+                            input_image_extension = ".png"
+                        case 2:
+                            input_image_extension = ".jpg"
+                        case 3:
+                            break
+                        case _:
+                            raise ValueError
             return
         except ValueError:
             press_enter_to_continue("Incorrect number, enter again")
-    input_image_extension = input("Manual input image extension: ")
-    if input_image_extension[0] != ".":
-        input_image_extension = "." + input_image_extension
+    user_input_extension = input("Manual input extension: ")
+    if user_input_extension[0] != ".":
+        user_input_extension = "." + user_input_extension
+    match operation:
+        case "video":
+            input_video_extension = user_input_extension
+        case "image":
+            input_image_extension = user_input_extension
+
+
+# def change_video_extension():
+#     global input_video_extension
+#     while True:
+#         try:
+#             print(
+#                 '\nEnter "1" for .mp4\nEnter "2" for .mkv\nEnter "3" for .webm\nEnter "4" for manual input'
+#             )
+#             temp = int(input("Enter number: "))
+#             if temp >= 1 and temp <= 4:
+#                 if temp == 1:
+#                     input_video_extension = ".mp4"
+#                 elif temp == 2:
+#                     input_video_extension = ".mkv"
+#                 elif temp == 3:
+#                     input_video_extension = ".webm"
+#                 elif temp == 4:
+#                     break
+#                 else:
+#                     raise ValueError
+#             else:
+#                 raise ValueError
+#             return
+#         except ValueError:
+#             press_enter_to_continue("Incorrect number, enter again")
+#     input_video_extension = input("Manual input video extension: ")
+#     if input_video_extension[0] != ".":
+#         input_video_extension = "." + input_video_extension
+
+
+# def change_image_extension():
+#     global input_image_extension
+#     while True:
+#         try:
+#             print(
+#                 '\nEnter "1" for .png\nEnter "2" for .jpg\nEnter "3" for manual input'
+#             )
+#             temp = int(input("Enter number: "))
+#             if temp >= 1 and temp <= 3:
+#                 if temp == 1:
+#                     input_image_extension = ".png"
+#                 elif temp == 2:
+#                     input_image_extension = ".jpg"
+#                 elif temp == 3:
+#                     break
+#                 else:
+#                     raise ValueError
+#             else:
+#                 raise ValueError
+#             return
+#         except ValueError:
+#             press_enter_to_continue("Incorrect number, enter again")
+#     input_image_extension = input("Manual input image extension: ")
+#     if input_image_extension[0] != ".":
+#         input_image_extension = "." + input_image_extension
 
 
 def update_merge_list():
@@ -179,8 +231,8 @@ def update_merge_list():
 def merge_setup():
     change_path("input")
     change_path("output")
-    change_video_extension()
-    change_image_extension()
+    change_extension("video")
+    change_extension("image")
     update_merge_list()
 
 
