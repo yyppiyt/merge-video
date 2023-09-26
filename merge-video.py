@@ -1,3 +1,4 @@
+import subprocess
 import sys, os
 from send2trash import send2trash
 
@@ -22,6 +23,18 @@ merge_list:"""
 def press_enter_to_continue(error_message):
     print(f"\n{error_message}")
     input("Press Enter to continue...\n")
+
+
+#
+def check_components():
+    ffmpeg = subprocess.run(["where", "ffmpeg"], capture_output=True, text=True)
+    mkvmerge = subprocess.run(["where", "mkvmerge"], capture_output=True, text=True)
+    if ffmpeg.returncode != 0 or mkvmerge.returncode != 0:
+        if ffmpeg.returncode != 0:
+            print(f"ffmpeg: {ffmpeg.stderr.strip()}")
+        if mkvmerge.returncode != 0:
+            print(f"mkvmerge: {mkvmerge.stderr.strip()}")
+        sys.exit("Missing one or more components, program ended")
 
 
 # Determine what should the program do
@@ -77,32 +90,6 @@ def change_path(operation=None):
         output_path = temp_path
 
 
-# def change_input_path():
-#     global input_path
-#     while True:
-#         input_path = input("\nEnter input folder path: ").strip()
-#         if os.path.isdir(input_path):
-#             while input_path[-1:] == ".":
-#                 input_path = input_path[:-1]
-#             break
-#         else:
-#             input_path = None
-#             press_enter_to_continue("Incorrect path, enter again")
-
-
-# def change_output_path():
-#     global output_path
-#     while True:
-#         output_path = input("\nEnter output folder path: ").strip()
-#         if os.path.isdir(output_path):
-#             while output_path[-1:] == ".":
-#                 output_path = output_path[:-1]
-#             break
-#         else:
-#             output_path = None
-#             press_enter_to_continue("Incorrect path, enter again")
-
-
 def change_extension(operation):
     global input_video_extension, input_image_extension
     match operation:
@@ -155,62 +142,6 @@ def change_extension(operation):
             input_image_extension = user_input_extension
 
 
-# def change_video_extension():
-#     global input_video_extension
-#     while True:
-#         try:
-#             print(
-#                 '\nEnter "1" for .mp4\nEnter "2" for .mkv\nEnter "3" for .webm\nEnter "4" for manual input'
-#             )
-#             temp = int(input("Enter number: "))
-#             if temp >= 1 and temp <= 4:
-#                 if temp == 1:
-#                     input_video_extension = ".mp4"
-#                 elif temp == 2:
-#                     input_video_extension = ".mkv"
-#                 elif temp == 3:
-#                     input_video_extension = ".webm"
-#                 elif temp == 4:
-#                     break
-#                 else:
-#                     raise ValueError
-#             else:
-#                 raise ValueError
-#             return
-#         except ValueError:
-#             press_enter_to_continue("Incorrect number, enter again")
-#     input_video_extension = input("Manual input video extension: ")
-#     if input_video_extension[0] != ".":
-#         input_video_extension = "." + input_video_extension
-
-
-# def change_image_extension():
-#     global input_image_extension
-#     while True:
-#         try:
-#             print(
-#                 '\nEnter "1" for .png\nEnter "2" for .jpg\nEnter "3" for manual input'
-#             )
-#             temp = int(input("Enter number: "))
-#             if temp >= 1 and temp <= 3:
-#                 if temp == 1:
-#                     input_image_extension = ".png"
-#                 elif temp == 2:
-#                     input_image_extension = ".jpg"
-#                 elif temp == 3:
-#                     break
-#                 else:
-#                     raise ValueError
-#             else:
-#                 raise ValueError
-#             return
-#         except ValueError:
-#             press_enter_to_continue("Incorrect number, enter again")
-#     input_image_extension = input("Manual input image extension: ")
-#     if input_image_extension[0] != ".":
-#         input_image_extension = "." + input_image_extension
-
-
 def update_merge_list():
     global input_video_extension, input_image_extension, merge_list
     temp_video_list, temp_image_list = [], []
@@ -247,18 +178,18 @@ def ytarchive_setup():
 
 
 if __name__ == "__main__":
-    choose_operation()
-    print(f"Selected operation: {operation}")
-
-    match operation:
-        case "merge":
-            merge_setup()
-        case "ytdlp":
-            ytdlp_setup()
-        case "ytarchive":
-            ytarchive_setup()
-        case _:
-            sys.exit("\nUnknown operation, program ended")
+    check_components()
+    # choose_operation()
+    # print(f"Selected operation: {operation}")
+    # match operation:
+    #     case "merge":
+    #         merge_setup()
+    #     case "ytdlp":
+    #         ytdlp_setup()
+    #     case "ytarchive":
+    #         ytarchive_setup()
+    #     case _:
+    #         sys.exit("\nUnknown operation, program ended")
 
     # if operation == "merge":
     #     merge_setup()
@@ -270,4 +201,4 @@ if __name__ == "__main__":
     #     sys.exit("\nUnknown operation, program ended")
     # print(os.listdir(input_path))
 
-    print_debug_infos()
+    # print_debug_infos()
