@@ -167,38 +167,28 @@ def merge_setup():
     update_merge_list()
 
 
-def ytdlp_setup():
-    print("ytdlp_setup()")
-    sys.exit()
+# def ytdlp_setup():
+#     print("ytdlp_setup()")
+#     sys.exit()
 
 
-def ytarchive_setup():
-    print("ytarchive_setup()")
-    sys.exit()
+# def ytarchive_setup():
+#     print("ytarchive_setup()")
+#     sys.exit()
 
 
 if __name__ == "__main__":
     check_components()
-    # choose_operation()
-    # print(f"Selected operation: {operation}")
-    # match operation:
-    #     case "merge":
-    #         merge_setup()
-    #     case "ytdlp":
-    #         ytdlp_setup()
-    #     case "ytarchive":
-    #         ytarchive_setup()
-    #     case _:
-    #         sys.exit("\nUnknown operation, program ended")
+    choose_operation()
+    print(f"Selected operation: {operation}")
+    match operation:
+        case "merge":
+            merge_setup()
+        # case "ytdlp":
+        #     ytdlp_setup()
+        # case "ytarchive":
+        #     ytarchive_setup()
+        case _:
+            sys.exit("\nUnknown operation, program ended")
 
-    # if operation == "merge":
-    #     merge_setup()
-    # elif operation == "ytdlp":
-    #     ytdlp_setup()
-    # elif operation == "ytarchive":
-    #     ytarchive_setup()
-    # else:
-    #     sys.exit("\nUnknown operation, program ended")
-    # print(os.listdir(input_path))
-
-    # print_debug_infos()
+    print_debug_infos()
