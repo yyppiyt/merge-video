@@ -2,8 +2,11 @@ import subprocess
 import sys, os
 from send2trash import send2trash
 
-operation = None
-input_path, input_video_extension, input_image_extension = None, None, None
+input_path, input_video_extension, input_image_extension = (
+    None,
+    None,
+    None,
+)
 output_path, output_video_extension, merge_list = r"C:\Videos", ".mkv", []
 
 
@@ -11,7 +14,6 @@ def print_debug_infos():
     print(
         f"""
 Debug infos:
-operation: {operation}
 input_path: \"{input_path}\", input_video_extension: {input_video_extension}, input_image_extension: {input_image_extension}
 output_path: \"{output_path}\", output_video_extension: {output_video_extension}
 merge_list:"""
@@ -26,6 +28,27 @@ def press_enter_to_continue(error_message):
 
 
 #
+def print_help_messages():
+    if len(sys.argv) > 1 and sys.argv[1] == "help":
+        print("Usage: merge-video [OPTIONS]")
+        # sys.exit("\nPrint help")
+        sys.exit()
+
+
+def create_folder(target):
+    try:
+        os.makedirs(target)
+        print(f"Folder created: {target}")
+        return True
+    except FileExistsError:
+        print(f"Folder already exists: {target}")
+        return True
+    except PermissionError:
+        press_enter_to_continue(f"Access Denied: {target}")
+        return False
+
+
+#
 def check_components():
     ffmpeg = subprocess.run(["where", "ffmpeg"], capture_output=True, text=True)
     mkvmerge = subprocess.run(["where", "mkvmerge"], capture_output=True, text=True)
@@ -37,41 +60,14 @@ def check_components():
         sys.exit("Missing one or more components, program ended")
 
 
-# Determine what should the program do
-def choose_operation():
-    global operation
-    # If user entered a valid operation, use it
-    if len(sys.argv) > 1 and sys.argv[1] == "merge":
-        operation = sys.argv[1]
-    else:
-        while True:
-            # print("Enter \"1\" for merge video\nEnter \"2\" for yt-dlp(inoperative)\nEnter \"3\" for ytarchive(inoperative)")
-            print('Enter "1" for merge video')
-            try:
-                temp = int(input("Enter number: "))
-                if temp >= 1 and temp <= 3:
-                    match temp:
-                        case 1:
-                            operation = "merge"
-                        # case 2:
-                        #     operation = "ytdlp"
-                        # case 3:
-                        #     operation = "ytarchive"
-                        case _:
-                            raise ValueError
-                else:
-                    raise ValueError
-                break
-            except ValueError:
-                press_enter_to_continue("Incorrect number, enter again")
-
-
 def change_path(operation=None):
     global input_path, output_path
+    askCreateFolder, createSuccess = False, False
     match operation:
         case "input":
             printString = "\nEnter input folder path: "
         case "output":
+            askCreateFolder = True
             printString = "\nEnter output folder path: "
         case _:
             sys.exit("\nUnknown operation while changing path, program ended")
@@ -82,8 +78,27 @@ def change_path(operation=None):
                 temp_path = temp_path[:-1]
             break
         else:
-            temp_path = None
-            press_enter_to_continue("Incorrect path, enter again")
+            if askCreateFolder:
+                while True:
+                    createFolder = (
+                        input("Folder not found, create? [Y/N] ").strip().upper()
+                    )
+                    match createFolder:
+                        case "Y":
+                            createSuccess = create_folder(temp_path)
+                            break
+                        case "N":
+                            press_enter_to_continue(
+                                "create folder aborted, enter again"
+                            )
+                            break
+                        case _:
+                            press_enter_to_continue("Incorrect operation, enter again")
+                if createSuccess:
+                    break
+            else:
+                temp_path = None
+                press_enter_to_continue("Incorrect path, enter again")
     if operation == "input":
         input_path = temp_path
     elif operation == "output":
@@ -167,28 +182,9 @@ def merge_setup():
     update_merge_list()
 
 
-# def ytdlp_setup():
-#     print("ytdlp_setup()")
-#     sys.exit()
-
-
-# def ytarchive_setup():
-#     print("ytarchive_setup()")
-#     sys.exit()
-
-
 if __name__ == "__main__":
+    print_help_messages()
     check_components()
-    choose_operation()
-    print(f"Selected operation: {operation}")
-    match operation:
-        case "merge":
-            merge_setup()
-        # case "ytdlp":
-        #     ytdlp_setup()
-        # case "ytarchive":
-        #     ytarchive_setup()
-        case _:
-            sys.exit("\nUnknown operation, program ended")
+    merge_setup()
 
     print_debug_infos()
