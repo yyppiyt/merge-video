@@ -1,36 +1,38 @@
-import subprocess, sys, os
+import subprocess
+import sys
+import os
 from pathlib import Path
 from send2trash import send2trash
 
-# input_video_extension, input_image_extension = ".mkv", ".png"
-input_path = None
+# Constants for file extensions
 VIDEO_EXTENSIONS = ["mkv", "mp4", "webm"]
 IMAGE_EXTENSIONS = ["png", "jpg"]
-output_path = None
 OUTPUT_VIDEO_EXTENSION = "mkv"
+
+# Global variables
+input_path = None
+output_path = None
 merge_list = []
 
 def print_debug_info():
-    """Prints debug information about paths and merge list."""
-    print(
-        f"""
+    """Prints debug information about paths and the merge list."""
+    print(f"""
 Debug Info:
 Input Path: \"{input_path}\"
 Video Extensions: {VIDEO_EXTENSIONS}
 Image Extensions: {IMAGE_EXTENSIONS}
 Output Path: \"{output_path}\"
 Output Video Extension: {OUTPUT_VIDEO_EXTENSION}
-Merge List:"""
-    )
+Merge List:""")
     for item in merge_list:
         print(item)
 
-def press_enter_to_continue(error_message):
-    """Prompt the user for a error confirmation."""
-    input(f"{error_message}\nPress Enter to continue...")
+def press_enter_to_continue(message):
+    """Prompt the user to press Enter after displaying a message."""
+    input(f"{message}\nPress Enter to continue...")
 
 def get_user_confirmation(prompt):
-    """Prompt the user for a yes/no input and return True for 'Y' and False for 'N'."""
+    """Prompt the user for a yes/no input and return True for 'Y', False for 'N'."""
     while True:
         response = input(prompt).strip().upper()
         if response in ['Y', 'N']:
@@ -41,7 +43,7 @@ def create_folder(path):
     """Create a folder at the specified path."""
     try:
         os.makedirs(path, exist_ok=True)
-        print(f"Folder created or exists at: {path}")
+        print(f"Folder created or already exists at: {path}")
         return True
     except Exception as e:
         press_enter_to_continue(f"Error creating folder: {e}")
@@ -50,13 +52,9 @@ def create_folder(path):
 def prompt_folder_creation(path):
     """Prompt the user to create a folder if it doesn't exist."""
     if get_user_confirmation("Folder not found, create? [Y/N] "):
-        if create_folder(path):
-            return True
-        else:
-            print("Failed to create folder. Please try again.")
-            return False
+        return create_folder(path)
     else:
-        print("Failed to create folder. Please try again.")
+        print("Folder creation aborted.")
         return False
 
 def check_required_components():
@@ -67,11 +65,11 @@ def check_required_components():
     for component in components:
         result = subprocess.run(["where", component], capture_output=True, text=True)
         if result.returncode != 0:
-            missing_components.append(f"{component}: {result.stderr.strip()}")
+            missing_components.append(f"{component} not found: {result.stderr.strip()}")
 
     if missing_components:
         print("\n".join(missing_components))
-        sys.exit("Missing one or more components, program ended")
+        sys.exit("Missing one or more required components. Program exited.")
 
 def get_valid_directory(operation):
     """Prompt the user for a valid directory path (input or output)."""
@@ -83,15 +81,15 @@ def get_valid_directory(operation):
         elif operation == "output" and prompt_folder_creation(path):
             return path
         else:
-            press_enter_to_continue("Incorrect path, enter again")
+            press_enter_to_continue("Invalid path, please enter a correct directory.")
 
 def update_merge_list():
-    """Update the merge list with matching video and image files from the input directory."""
+    """Update the merge list with matching video, image, and optional description files from the input directory."""
     global merge_list
     directory_path = Path(input_path)
     file_map = {}
 
-    # Collect files and group by their name (stem)
+    # Collect files and group them by their name (stem)
     for file in directory_path.iterdir():
         if file.is_file():
             name = file.stem  # Get the file name without extension
@@ -103,16 +101,16 @@ def update_merge_list():
         video_ext = next((ext for ext in VIDEO_EXTENSIONS if ext in extensions), None)
         image_ext = next((ext for ext in IMAGE_EXTENSIONS if ext in extensions), None)
         description_ext = "description" if "description" in extensions else None
-        
+
         # Append to merge_list if both video and image extensions are found
         if video_ext and image_ext:
             merge_item = (name, video_ext, image_ext)
             if description_ext:
-                merge_item += (description_ext,) # Add description if found
+                merge_item += (description_ext,)  # Add description if found
             merge_list.append(merge_item)
 
 
-def merge_setup():
+def setup_paths_and_merge_list():
     """Set up the input and output paths and update the merge list."""
     global input_path, output_path
     input_path = get_valid_directory("input")
@@ -125,12 +123,12 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "help":
         print("Usage: merge-video [OPTIONS]")
         sys.exit()
-    
-    # Check required components
+
+    # Check required external components (ffmpeg, mkvmerge)
     check_required_components()
 
     # Set up paths and merge list
-    merge_setup()
+    setup_paths_and_merge_list()
 
-    # Print debug info
+    # Print debug information
     print_debug_info()
