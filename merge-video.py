@@ -17,6 +17,7 @@ merge_list = []
 complete_counter = 0
 warning_counter = 0
 abort_counter = 0
+send_to_trash = True
 
 def print_debug_info():
     """Prints debug information about paths and the merge list."""
@@ -170,6 +171,15 @@ def run_mkvmerge(item):
             print(line, end='')
     return mkvmerge.wait()
 
+def send_file_to_trash(item):
+    for file_ext in item[1:]:
+        print(f"Moving \"{input_path}/{item[0]}.{file_ext}\" to the Recycle Bin")
+        try:
+            file = Path(f"{input_path}/{item[0]}.{file_ext}")
+            send2trash(file)
+        except Exception as e:
+            print(f"Unable to delete file: {e}")
+
 def merge():
     global complete_counter, warning_counter, abort_counter
     if len(merge_list) < 1:
@@ -179,6 +189,7 @@ def merge():
             result = run_mkvmerge(item)
             if result == 0:
                 complete_counter += 1
+                send_file_to_trash(item) if send_to_trash else None
             elif result == 1:
                 warning_counter += 1
             elif result == 2:
@@ -198,9 +209,12 @@ def get_channel_name(text):
 
 if __name__ == "__main__":
     # Check if the user asked for help
-    if len(sys.argv) > 1 and sys.argv[1] == "help":
+    if len(sys.argv) > 1 and sys.argv[1] == "--help":
         print("Usage: merge-video [OPTIONS] SOURCE_FOLDER OUTPUT_FOLDER")
         sys.exit()
+    elif len(sys.argv) > 1:
+        for arg in sys.argv:
+            send_to_trash = False if arg == "--keep-files" or arg == "-k" else None
 
     # Check required external components (ffmpeg, mkvmerge)
     check_required_components()
@@ -210,5 +224,5 @@ if __name__ == "__main__":
 
     # Print debug information
     # print_debug_info()
-
+    print(send_to_trash is True)
     merge()
