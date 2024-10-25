@@ -5,19 +5,22 @@ import re
 from pathlib import Path
 from send2trash import send2trash
 
-# Constants for file extensions
+# Constants for file extensions and configuration
 VIDEO_EXTENSIONS = ["mkv", "mp4", "webm"]
 IMAGE_EXTENSIONS = ["png", "jpg"]
 OUTPUT_VIDEO_EXTENSION = "mkv"
+SEND_TO_TRASH = True
+
+# Global counters
+complete_counter = 0
+warning_counter = 0
+abort_counter = 0
 
 # Global variables
 input_path = None
 output_path = None
 merge_list = []
-complete_counter = 0
-warning_counter = 0
-abort_counter = 0
-send_to_trash = True
+
 
 def print_debug_info():
     """Prints debug information about paths and the merge list."""
@@ -123,37 +126,39 @@ def setup_paths_and_merge_list():
     global input_path, output_path
     if len(sys.argv) > 1:
         for arg in sys.argv:
-            if os.path.isdir(arg) and input_path is None:
-                input_path = arg
-                print(f"Input folder path: {input_path}")
-            elif os.path.isdir(arg) and output_path is None:
-                output_path = arg
-                print(f"Output folder path: {output_path}")
-    if input_path is None: input_path = get_valid_directory("input")
-    if output_path is None: output_path = get_valid_directory("output")
+            if os.path.isdir(arg):
+                if input_path is None:
+                    input_path = arg
+                    print(f"Input folder path: {input_path}")
+                elif output_path is None:
+                    output_path = arg
+                    print(f"Output folder path: {output_path}")
+    if input_path is None:
+        input_path = get_valid_directory("input")
+    if output_path is None:
+        output_path = get_valid_directory("output")
     update_merge_list()
 
 def get_mkvmerge_command(item):
-    name = item[0]
-    video_ext = item[1]
-    image_ext = item[2]
+    """Build the mkvmerge command for a specific merge item."""
+    name, video_ext, image_ext = item[:3]
     subtitle_string = ''
     attachment_string = ''
     track_order_string = "0:0,0:1"
     if len(item) > 3:
         for attachment in item[3:]:
-            attachment_string += f"--attach-file \"{input_path}/{name}.{attachment}\" "
-    return f'mkvmerge --output "{output_path}/{get_channel_name(name)}/{name}.{OUTPUT_VIDEO_EXTENSION}" ' \
-           f'"{input_path}/{name}.{video_ext}" ' \
-           f'{subtitle_string} ' \
-           f'--attachment-name cover.{image_ext} ' \
-           f'--attach-file "{input_path}/{name}.{image_ext}" ' \
-           f'{attachment_string} ' \
-           f'--track-order {track_order_string}'
+            attachment_string += f'--attach-file "{input_path}/{name}.{attachment}" '
+    
+    return (f'mkvmerge --output "{output_path}/{get_channel_name(name)}/{name}.{OUTPUT_VIDEO_EXTENSION}" '
+            f'"{input_path}/{name}.{video_ext}" '
+            f'{subtitle_string} '
+            f'--attachment-name cover.{image_ext} '
+            f'--attach-file "{input_path}/{name}.{image_ext}" '
+            f'{attachment_string} '
+            f'--track-order {track_order_string}')
 
 def run_mkvmerge(item):
-    # print(get_mkvmerge_command(item))
-    # Start the subprocess
+    """Run the mkvmerge command for a given item and handle its output."""
     mkvmerge = subprocess.Popen(
         get_mkvmerge_command(item),
         stdout=subprocess.PIPE,
@@ -172,49 +177,55 @@ def run_mkvmerge(item):
     return mkvmerge.wait()
 
 def send_file_to_trash(item):
+    """Send a list of files to the Recycle Bin."""
     for file_ext in item[1:]:
-        print(f"Moving \"{input_path}/{item[0]}.{file_ext}\" to the Recycle Bin")
+        file_path = Path(f"{input_path}/{item[0]}.{file_ext}")
+        print(f'Moving "{file_path}" to the Recycle Bin')
         try:
-            file = Path(f"{input_path}/{item[0]}.{file_ext}")
-            send2trash(file)
+            send2trash(file_path)
         except Exception as e:
             print(f"Unable to delete file: {e}")
 
 def merge():
+    """Perform the merge operation for all items in the merge list."""
     global complete_counter, warning_counter, abort_counter
     if len(merge_list) < 1:
-        sys.exit("Found 0 files to be merge. Program exited.")
-    if get_user_confirmation(f"Enter \"List\" to list all file\nFound {len(merge_list)} files to be merge, continue? [Y/N] ", True):
+        sys.exit("No files to merge. Program exited.")
+        
+    if get_user_confirmation(f'Enter "List" to list all files\nFound {len(merge_list)} files to merge. Continue? [Y/N] ', True):
         for item in merge_list:
             result = run_mkvmerge(item)
             if result == 0:
                 complete_counter += 1
-                send_file_to_trash(item) if send_to_trash else None
+                if SEND_TO_TRASH:
+                    send_file_to_trash(item)
             elif result == 1:
                 warning_counter += 1
             elif result == 2:
                 abort_counter += 1
             print(f"{len(merge_list) - complete_counter - warning_counter - abort_counter} file(s) remaining\n")
-        print(f"Merge process ended with {complete_counter} video completed, {warning_counter} warning, {abort_counter} error" \
-              f"{"\nWarning occurred, check both the warning and the resulting file is recommended" if warning_counter else ""}" \
-              f"{"\nError occurred, some missions are aborted" if abort_counter else ""}")
+        print(f"Merge process ended: {complete_counter} completed, {warning_counter} warnings, {abort_counter} errors.")
+        if warning_counter:
+            print("Warning occurred. Please check both the warnings and the resulting file.")
+        if abort_counter:
+            print("Error occurred. Some operations were aborted.")
     else:
         sys.exit("Merge aborted. Program exited.")
 
 def get_channel_name(text):
-    # Regular expression to find all occurrences of text within square brackets
+    """Extract and return the channel name from the file name based on square brackets."""
     matches = re.findall(r'\[(.*?)\]', text)
-    # Return the last match, if any
     return matches[-1] if matches else None
 
 if __name__ == "__main__":
     # Check if the user asked for help
-    if len(sys.argv) > 1 and sys.argv[1] == "--help":
+    if len(sys.argv) > 1 and sys.argv[1] in ("--help", "-h"):
         print("Usage: merge-video [OPTIONS] SOURCE_FOLDER OUTPUT_FOLDER")
         sys.exit()
     elif len(sys.argv) > 1:
         for arg in sys.argv:
-            send_to_trash = False if arg == "--keep-files" or arg == "-k" else None
+            if arg in ("--keep-files", "-k"):
+                SEND_TO_TRASH = False
 
     # Check required external components (ffmpeg, mkvmerge)
     check_required_components()
@@ -224,5 +235,6 @@ if __name__ == "__main__":
 
     # Print debug information
     # print_debug_info()
-    print(send_to_trash is True)
+    
+    # Perform the merge
     merge()
