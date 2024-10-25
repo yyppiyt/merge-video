@@ -149,7 +149,7 @@ def get_mkvmerge_command(item):
         for attachment in item[3:]:
             attachment_string += f'--attach-file "{input_path}/{name}.{attachment}" '
     
-    return (f'mkvmerge --output "{output_path}/{get_channel_name(name)}/{name}.{OUTPUT_VIDEO_EXTENSION}" '
+    return (f'mkvmerge --output "{output_path}/{get_channel_name(name)}/{name}.{OUTPUT_VIDEO_EXTENSION}" --no-attachments '
             f'"{input_path}/{name}.{video_ext}" '
             f'{subtitle_string} '
             f'--attachment-name cover.{image_ext} '
